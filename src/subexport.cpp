@@ -686,7 +686,13 @@ void rulesetToClash(YAML::Node &base_rule, std::vector<ruleset_content> &ruleset
                 strLine.erase(--lineSize);
             if(!lineSize || strLine[0] == ';' || strLine[0] == '#' || (lineSize >= 2 && strLine[0] == '/' && strLine[1] == '/')) //empty lines and comments are ignored
                 continue;
-            if(!std::any_of(ClashRuleTypes.begin(), ClashRuleTypes.end(), [strLine](std::string type){return startsWith(strLine, type);}))
+            if(strLine.find("//") != std::string::npos)
+            {
+                strLine.erase(strLine.find("//"));
+                strLine.erase(strLine.find_last_not_of(" \t")+1);
+                lineSize = strLine.size();
+            }
+            if(std::none_of(ClashRuleTypes.begin(), ClashRuleTypes.end(), [strLine](std::string type){return startsWith(strLine, type);}))
                 continue;
             strLine += "," + rule_group;
             if(count_least(strLine, ',', 3))
@@ -753,13 +759,16 @@ std::string rulesetToClashStr(YAML::Node &base_rule, std::vector<ruleset_content
             if(gMaxAllowedRules && total_rules > gMaxAllowedRules)
                 break;
             lineSize = strLine.size();
-            if(lineSize && strLine[lineSize - 1] == '\r')
-            {
-                strLine.erase(lineSize - 1);
-                lineSize = strLine.size();
-            }
+            if(lineSize && strLine[lineSize - 1] == '\r') //remove line break
+                strLine.erase(--lineSize);
             if(!lineSize || strLine[0] == ';' || strLine[0] == '#' || (lineSize >= 2 && strLine[0] == '/' && strLine[1] == '/')) //empty lines and comments are ignored
                 continue;
+            if(strLine.find("//") != std::string::npos)
+            {
+                strLine.erase(strLine.find("//"));
+                strLine.erase(strLine.find_last_not_of(" \t")+1);
+                lineSize = strLine.size();
+            }
             if(std::none_of(ClashRuleTypes.begin(), ClashRuleTypes.end(), [strLine](std::string type){return startsWith(strLine, type);}))
                 continue;
             strLine += "," + rule_group;
@@ -930,6 +939,12 @@ void rulesetToSurge(INIReader &base_rule, std::vector<ruleset_content> &ruleset_
                     strLine.erase(--lineSize);
                 if(!lineSize || strLine[0] == ';' || strLine[0] == '#' || (lineSize >= 2 && strLine[0] == '/' && strLine[1] == '/')) //empty lines and comments are ignored
                     continue;
+                if(strLine.find("//") != std::string::npos)
+                {
+                    strLine.erase(strLine.find("//"));
+                    strLine.erase(strLine.find_last_not_of(" \t")+1);
+                    lineSize = strLine.size();
+                }
 
                 /// remove unsupported types
                 switch(surge_ver)
